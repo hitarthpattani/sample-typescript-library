@@ -16,8 +16,3 @@ export interface Options {
     attributes?: string[];
     where?: string;
 }
-
-export interface ExecuteResult {
-    rows: any[];
-}
-

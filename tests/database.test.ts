@@ -1,18 +1,18 @@
-import { createClient } from '@libsql/client';
-import Database from '../src/library/Database';
-import { Model, ExecuteResult } from '../src/library/Database/types';
+import Database from '../src/library/Database'; // Adjust the path as necessary
+import Connection from '../src/library/Connection'; // Adjust the path as necessary
+import { Model, Attribute, Options } from '../src/library/Database/types'; // Adjust the path as necessary
 
-jest.mock('@libsql/client');
+jest.mock('../src/library/Connection');
 
 describe('Database', () => {
-    let db: Database;
+    let connection: Connection;
+    let database: Database;
     const mockExecute = jest.fn();
 
     beforeEach(() => {
-        (createClient as jest.Mock).mockReturnValue({
-            execute: mockExecute,
-        });
-        db = new Database('test-url', 'test-token');
+        connection = new Connection('test-url', 'test-token');
+        connection.execute = mockExecute;
+        database = new Database(connection);
     });
 
     afterEach(() => {
@@ -20,76 +20,113 @@ describe('Database', () => {
     });
 
     it('should define a model', () => {
-        db.define('User', { id: { name: 'id', type: 'number' }, name: { name: 'name', type: 'string' } });
-        expect((db as any).User).toEqual({
-            name: 'User',
-            attributes: { id: { name: 'id', type: 'number' }, name: { name: 'name', type: 'string' } },
+        const modelName = 'TestModel';
+        const attributes: Record<string, Attribute> = {
+            id: { name: 'id', type: 'INTEGER' },
+            name: { name: 'name', type: 'TEXT' }
+        };
+
+        database.define(modelName, attributes);
+
+        expect((database as any)[modelName]).toEqual({
+            name: modelName,
+            attributes: attributes
         });
     });
 
-    it('should create a table for a model', async () => {
+    it('should create a table', async () => {
+        const model: Model = {
+            name: 'TestModel',
+            attributes: {
+                id: { name: 'id', type: 'INTEGER' },
+                name: { name: 'name', type: 'TEXT' }
+            }
+        };
         mockExecute.mockResolvedValue({});
 
-        const model: Model = { name: 'User', attributes: { id: { name: 'id', type: 'number' }, name: { name: 'name', type: 'string' } } };
-        await db.createTable(model);
+        await database.createTable(model);
 
         expect(mockExecute).toHaveBeenCalledWith({
-            sql: 'CREATE TABLE User (id number, name string)',
-            args: [],
+            sql: 'CREATE TABLE TestModel (id INTEGER, name TEXT)',
+            args: []
         });
     });
 
-    it('should select data from a model', async () => {
-        const mockResult: ExecuteResult = { rows: [{ id: 1, name: 'John Doe' }] };
-        mockExecute.mockResolvedValue(mockResult);
+    it('should select rows from a table', async () => {
+        const model: Model = {
+            name: 'TestModel',
+            attributes: {
+                id: { name: 'id', type: 'INTEGER' },
+                name: { name: 'name', type: 'TEXT' }
+            }
+        };
+        const rows = [{ id: 1, name: 'TestName' }];
+        mockExecute.mockResolvedValue({ rows });
 
-        const model: Model = { name: 'User', attributes: { id: { name: 'id', type: 'number' }, name: { name: 'name', type: 'string' } } };
-        const result = await db.select(model);
+        const result = await database.select(model);
 
         expect(mockExecute).toHaveBeenCalledWith({
-            sql: 'SELECT id, name FROM User ',
-            args: [],
+            sql: 'SELECT id, name FROM TestModel ',
+            args: []
         });
-        expect(result).toEqual(mockResult.rows);
+        expect(result).toEqual(rows);
     });
 
-    it('should insert data into a model', async () => {
+    it('should insert a row into a table', async () => {
+        const model: Model = {
+            name: 'TestModel',
+            attributes: {
+                id: { name: 'id', type: 'INTEGER' },
+                name: { name: 'name', type: 'TEXT' }
+            }
+        };
+        const data = { id: 1, name: 'TestName' };
         mockExecute.mockResolvedValue({});
 
-        const model: Model = { name: 'User', attributes: { id: { name: 'id', type: 'number' }, name: { name: 'name', type: 'string' } } };
-        const data = { id: 1, name: 'John Doe' };
-        await db.insert(model, data);
+        await database.insert(model, data);
 
         expect(mockExecute).toHaveBeenCalledWith({
-            sql: 'INSERT INTO User (id, name) VALUES (?, ?)',
-            args: [1, 'John Doe'],
+            sql: 'INSERT INTO TestModel (id, name) VALUES (?, ?)',
+            args: [1, 'TestName']
         });
     });
 
-    it('should update data in a model', async () => {
+    it('should update a row in a table', async () => {
+        const model: Model = {
+            name: 'TestModel',
+            attributes: {
+                id: { name: 'id', type: 'INTEGER' },
+                name: { name: 'name', type: 'TEXT' }
+            }
+        };
+        const data = { name: 'UpdatedName' };
+        const options: Options = { where: 'id = 1' };
         mockExecute.mockResolvedValue({});
 
-        const model: Model = { name: 'User', attributes: { id: { name: 'id', type: 'number' }, name: { name: 'name', type: 'string' } } };
-        const data = { name: 'Jane Doe' };
-        const options = { where: 'id = 1' };
-        await db.update(model, data, options);
+        await database.update(model, data, options);
 
         expect(mockExecute).toHaveBeenCalledWith({
-            sql: 'UPDATE User SET name = ? WHERE id = 1',
-            args: ['Jane Doe'],
+            sql: 'UPDATE TestModel SET name = ? WHERE id = 1',
+            args: ['UpdatedName']
         });
     });
 
-    it('should delete data from a model', async () => {
+    it('should delete a row from a table', async () => {
+        const model: Model = {
+            name: 'TestModel',
+            attributes: {
+                id: { name: 'id', type: 'INTEGER' },
+                name: { name: 'name', type: 'TEXT' }
+            }
+        };
+        const options: Options = { where: 'id = 1' };
         mockExecute.mockResolvedValue({});
 
-        const model: Model = { name: 'User', attributes: { id: { name: 'id', type: 'number' }, name: { name: 'name', type: 'string' } } };
-        const options = { where: 'id = 1' };
-        await db.delete(model, options);
+        await database.delete(model, options);
 
         expect(mockExecute).toHaveBeenCalledWith({
-            sql: 'DELETE FROM User WHERE id = 1',
-            args: [],
+            sql: 'DELETE FROM TestModel WHERE id = 1',
+            args: []
         });
     });
 });
