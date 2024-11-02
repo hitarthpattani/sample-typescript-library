@@ -3,7 +3,7 @@
  */
 
 import { Connection, ExecuteResult } from '../Connection/types';
-import { Model, Options, Attribute } from './types';
+import { Model, Attribute, Options } from './types';
 
 class Database {
     private connection: Connection;
@@ -12,11 +12,13 @@ class Database {
         this.connection = connection;
     }
 
-    define(name: string, attributes: Record<string, Attribute>): void {
-        (this as any)[name] = {
+    define(name: string, attributes: Record<string, Attribute>): Model {
+        const model = {
             name: name,
             attributes: attributes,
         };
+        (this as any)[name] = model;
+        return model;
     }
 
     async createTable(model: Model): Promise<void> {

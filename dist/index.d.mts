@@ -8,7 +8,7 @@ interface Query {
     sql: string;
     args?: any[];
 }
-interface Connection {
+interface Connection$1 {
     execute(query: Query): Promise<ExecuteResult>;
 }
 
@@ -34,8 +34,8 @@ interface Options {
 
 declare class Database {
     private connection;
-    constructor(connection: Connection);
-    define(name: string, attributes: Record<string, Attribute>): void;
+    constructor(connection: Connection$1);
+    define(name: string, attributes: Record<string, Attribute>): Model;
     createTable(model: Model): Promise<void>;
     select(model: Model, options?: Options): Promise<any[]>;
     insert(model: Model, data: Record<string, any>): Promise<void>;
@@ -43,4 +43,14 @@ declare class Database {
     delete(model: Model, options?: Options): Promise<void>;
 }
 
-export { Database };
+/**
+ * Copyright © Adobe, Inc. All rights reserved.
+ */
+
+declare class Connection implements Connection$1 {
+    private client;
+    constructor(url: string, token: string);
+    execute(query: Query): Promise<ExecuteResult>;
+}
+
+export { Connection, Database };

@@ -19,19 +19,20 @@ describe('Database', () => {
         jest.clearAllMocks();
     });
 
-    it('should define a model', () => {
+    it('should define a model and return it', () => {
         const modelName = 'TestModel';
         const attributes: Record<string, Attribute> = {
             id: { name: 'id', type: 'INTEGER' },
             name: { name: 'name', type: 'TEXT' }
         };
 
-        database.define(modelName, attributes);
+        const model = database.define(modelName, attributes);
 
-        expect((database as any)[modelName]).toEqual({
+        expect(model).toEqual({
             name: modelName,
             attributes: attributes
         });
+        expect((database as any)[modelName]).toEqual(model);
     });
 
     it('should create a table', async () => {
