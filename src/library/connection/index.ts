@@ -1,6 +1,9 @@
+/**
+ * Copyright © Adobe, Inc. All rights reserved.
+ */
 
 import fetch from 'node-fetch';
-import { Request, Connection as IConnection } from './types';
+import { Request, Connection as IConnection, Result, ExecuteResponse } from './types';
 
 class Connection implements IConnection {
     url: string;
@@ -14,10 +17,18 @@ class Connection implements IConnection {
     }
 
     addRequest(query: string = '', args: any[] = [], identifier: string = ''): void {
-        this.requests.push({ type: "execute", stmt: { sql: query, named_args: args }, identifier });
+        const request: Request = {
+            type: "execute",
+            stmt: {
+                sql: query,
+                named_args: args
+            },
+            identifier
+        };
+        this.requests.push(request);
     }
 
-    async execute(): Promise<any> {
+    async execute(): Promise<Record<string, any>> {
         if (this.requests.length === 0) {
             throw new Error("No requests to execute");
         }
@@ -40,7 +51,7 @@ class Connection implements IConnection {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
 
-            const result = await response.json();
+            const result: unknown = await response.json();
 
             console.log(JSON.stringify(result));
 
@@ -48,16 +59,16 @@ class Connection implements IConnection {
 
             this.requests.forEach((req, index) => {
                 if (req.type === "execute") {
-                    const res = result.results[index];
+                    const res: ExecuteResponse = result.results[index];
 
                     if (res.type === "error") {
                         responses[req.identifier] = {
-                            query: req.stmt.sql,
+                            query: req.stmt?.sql,
                             error: res.error,
                         };
-                    } else if (res.response.type === "execute") {
+                    } else if (res.response?.type === "execute") {
                         responses[req.identifier] = {
-                            query: req.stmt.sql,
+                            query: req.stmt?.sql,
                             result: res.response.result,
                         };
                     }

@@ -1,4 +1,8 @@
-import { Model } from '../types';
+/**
+ * Copyright © Adobe, Inc. All rights reserved.
+ */
+
+import { Model } from '../model/types';
 import { Condition, Group } from "../where-condition-formatter/types";
 import { OrderBy } from "../order-by-formatter/types";
 

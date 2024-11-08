@@ -1,6 +1,10 @@
+/**
+ * Copyright © Adobe, Inc. All rights reserved.
+ */
+
 import { Condition, Group, Where } from './types';
 
-export class WhereConditionFormatter {
+class WhereConditionFormatter {
     static buildCondition(condition: Condition): string {
         const { field, value, operator } = condition;
         const formattedValue = typeof value === 'string' ? `'${value}'` : value;
