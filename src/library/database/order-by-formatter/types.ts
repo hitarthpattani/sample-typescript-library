@@ -1,8 +1,4 @@
-/**
- * Copyright © Adobe, Inc. All rights reserved.
- */
-
-export interface Order {
+export interface OrderBy {
     field: string;
     direction: string;
 }

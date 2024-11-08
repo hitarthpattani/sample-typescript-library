@@ -2,10 +2,10 @@
  * Copyright © Adobe, Inc. All rights reserved.
  */
 
-import { Order } from './types'
+import { OrderBy } from "./types";
 
-class OrderByFormatter {
-    static format(orderBy: Order[]): string {
+export class OrderByFormatter {
+    static format(orderBy: OrderBy[]): string {
         if (!orderBy || orderBy.length === 0) {
             return '';
         }

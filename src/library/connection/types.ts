@@ -1,8 +1,4 @@
-/**
- * Copyright © Adobe, Inc. All rights reserved.
- */
-
-export interface IRequest {
+export interface Request {
     type: string;
     stmt?: {
         sql: string;
@@ -11,22 +7,10 @@ export interface IRequest {
     identifier?: string;
 }
 
-export interface IConnection {
+export interface Connection {
     url: string;
     token: string;
-    requests: IRequest[];
-
+    requests: Request[];
     addRequest(query: string, args: any[], identifier: string): void;
-    execute(): Promise<{ [key: string]: any }>;
-}
-
-export interface IFetchResult {
-    results: Array<{
-        type: string;
-        response: {
-            type: string;
-            result?: any;
-            error?: string;
-        };
-    }>;
+    execute(): Promise<any>;
 }

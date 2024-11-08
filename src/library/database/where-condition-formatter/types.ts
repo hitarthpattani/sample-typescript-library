@@ -1,14 +1,12 @@
-/**
- * Copyright © Adobe, Inc. All rights reserved.
- */
-
 export interface Condition {
     field: string;
-    value: string | number;
     operator: string;
+    value: any;
 }
 
 export interface Group {
     logic: string;
     conditions: (Condition | Group)[];
 }
+
+export type Where = Condition | Group;
