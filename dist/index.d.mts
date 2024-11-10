@@ -4,6 +4,23 @@
 interface Connection$1 {
     url: string;
     token: string;
+    requests: Array<{
+        type: string;
+        stmt: {
+            sql: string;
+            named_args: any[];
+        };
+        identifier: string;
+    }>;
+    addRequest(params: RequestParams): void;
+    execute(): Promise<{
+        [key: string]: any;
+    }>;
+}
+interface RequestParams {
+    query?: string;
+    args?: any[];
+    identifier?: string;
 }
 
 /**
@@ -13,9 +30,19 @@ interface Connection$1 {
 declare class Connection implements Connection$1 {
     url: string;
     token: string;
+    requests: Array<{
+        type: string;
+        stmt: {
+            sql: string;
+            named_args: any[];
+        };
+        identifier: string;
+    }>;
     constructor(url?: string, token?: string);
-    getUrl(): string;
-    getToken(): string;
+    addRequest({ query, args, identifier }: RequestParams): void;
+    execute(): Promise<{
+        [key: string]: any;
+    }>;
 }
 
 export { Connection };
