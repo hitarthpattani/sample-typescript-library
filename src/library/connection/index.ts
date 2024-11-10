@@ -3,12 +3,12 @@
  */
 
 import fetch from 'node-fetch';
-import { Connection as IConnection, RequestParams } from './types';
+import { Connection as IConnection, RequestParams, Request } from './types';
 
 class Connection implements IConnection {
     url: string;
     token: string;
-    requests: Array<{ type: string; stmt: { sql: string; named_args: any[] }; identifier: string }>;
+    requests: Request[];
 
     constructor(url: string = '', token: string = '') {
         this.url = `${url}/v2/pipeline`;
@@ -29,11 +29,9 @@ class Connection implements IConnection {
             throw new Error("No requests to execute");
         }
 
-        // Add a close request with a default structure
+        // Add a close request without stmt and identifier
         this.requests.push({
-            type: "close",
-            stmt: { sql: '', named_args: [] },
-            identifier: ''
+            type: "close"
         });
 
         console.log(JSON.stringify(this.requests));
@@ -63,13 +61,13 @@ class Connection implements IConnection {
                     const res = result.results[index];
 
                     if (res.type === "error") {
-                        responses[req.identifier] = {
-                            query: req.stmt.sql,
+                        responses[req.identifier || ''] = {
+                            query: req.stmt?.sql || '',
                             error: res.error,
                         };
-                    } else if (res.response.type === "execute") {
-                        responses[req.identifier] = {
-                            query: req.stmt.sql,
+                    } else if (res.response && res.response.type === "execute") {
+                        responses[req.identifier || ''] = {
+                            query: req.stmt?.sql || '',
                             result: res.response.result,
                         };
                     }
