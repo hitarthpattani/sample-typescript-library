@@ -17,15 +17,11 @@ class Connection implements IConnection {
     }
 
     addRequest(query: string = '', args: any[] = [], identifier: string = '') {
-        let request = {
+        this.requests.push({
             type: "execute",
             stmt: { sql: query, named_args: args },
             identifier: identifier
-        };
-        console.log(query);
-        console.log(identifier);
-        console.log(JSON.stringify(request));
-        this.requests.push(request);
+        });
     }
 
     async execute() {
