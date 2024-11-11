@@ -3037,11 +3037,15 @@ var Connection = class {
     this.requests = [];
   }
   addRequest(query = "", args = [], identifier = "") {
-    this.requests.push({
+    let request = {
       type: "execute",
       stmt: { sql: query, named_args: args },
       identifier
-    });
+    };
+    console.log(query);
+    console.log(identifier);
+    console.log(JSON.stringify(request));
+    this.requests.push(request);
   }
   async execute() {
     if (this.requests.length === 0) {
