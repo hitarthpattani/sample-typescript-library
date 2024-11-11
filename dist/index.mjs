@@ -3282,8 +3282,141 @@ var Database = class {
   }
 };
 var database_default = Database;
+
+// src/library/action-validator/index.ts
+var ActionValidator = class _ActionValidator {
+  /**
+   * Returns the list of missing keys given an object and its required keys.
+   * A parameter is missing if its value is undefined or ''.
+   * A value of 0 or null is not considered as missing.
+   *
+   * @param obj object to check.
+   * @param required list of required keys.
+   *        Each element can be multi-level deep using a '.' separator e.g. 'myRequiredObj.myRequiredKey'
+   *
+   * @returns array
+   * @private
+   */
+  static getMissingKeys(obj, required) {
+    return required.filter((r) => {
+      const splits = r.split(".");
+      const last = splits[splits.length - 1];
+      const traverse = splits.slice(0, -1).reduce((tObj, split) => tObj[split] || {}, obj);
+      return traverse[last] === void 0 || traverse[last] === "";
+    });
+  }
+  /**
+   * Returns the list of missing keys given an object and its required keys.
+   * A parameter is missing if its value is undefined or ''.
+   * A value of 0 or null is not considered as missing.
+   *
+   * @param params action input parameters.
+   * @param requiredHeaders list of required input headers.
+   * @param requiredParams list of required input parameters.
+   *        Each element can be multi-level deep using a '.' separator e.g. 'myRequiredObj.myRequiredKey'.
+   *
+   * @returns string|null if the return value is not null, then it holds an error message describing the missing inputs.
+   *
+   */
+  static checkMissingRequestInputs(params, requiredParams = [], requiredHeaders = []) {
+    let errorMessage = null;
+    requiredHeaders = requiredHeaders.map((h) => h.toLowerCase());
+    const missingHeaders = _ActionValidator.getMissingKeys(params.__ow_headers || {}, requiredHeaders);
+    if (missingHeaders.length > 0) {
+      errorMessage = `missing header(s) '${missingHeaders}'`;
+    }
+    const missingParams = _ActionValidator.getMissingKeys(params, requiredParams);
+    if (missingParams.length > 0) {
+      if (errorMessage) {
+        errorMessage += " and ";
+      } else {
+        errorMessage = "";
+      }
+      errorMessage += `missing parameter(s) '${missingParams}'`;
+    }
+    return errorMessage;
+  }
+};
+var action_validator_default = ActionValidator;
+
+// src/library/parameters/index.ts
+var Parameters = class {
+  /**
+   * Returns a log-ready string of the action input parameters.
+   * The `Authorization` header content will be replaced by '<hidden>'.
+   *
+   * @param params action input parameters.
+   *
+   * @returns string
+   */
+  static stringify(params) {
+    let headers = params.__ow_headers || {};
+    if (headers.authorization) {
+      headers = { ...headers, authorization: "<hidden>" };
+    }
+    return JSON.stringify({ ...params, __ow_headers: headers });
+  }
+};
+var parameters_default = Parameters;
+
+// src/library/constants/index.ts
+var HttpStatus = /* @__PURE__ */ ((HttpStatus2) => {
+  HttpStatus2[HttpStatus2["OK"] = 200] = "OK";
+  HttpStatus2[HttpStatus2["BAD_REQUEST"] = 400] = "BAD_REQUEST";
+  HttpStatus2[HttpStatus2["UNAUTHORIZED"] = 401] = "UNAUTHORIZED";
+  HttpStatus2[HttpStatus2["NOT_FOUND"] = 404] = "NOT_FOUND";
+  HttpStatus2[HttpStatus2["INTERNAL_ERROR"] = 500] = "INTERNAL_ERROR";
+  return HttpStatus2;
+})(HttpStatus || {});
+
+// src/library/response/index.ts
+var Response2 = class {
+  constructor(logger) {
+    this.logger = logger;
+  }
+  /**
+   * Returns a success response object, this method should be called on the handlers actions
+   *
+   * @param response a descriptive message of the result
+   *        e.g. 'missing xyz parameter'
+   * @returns the response object, ready to be returned from the action main's function.
+   */
+  success(response) {
+    return {
+      statusCode: 200 /* OK */,
+      body: response
+    };
+  }
+  /**
+   * Returns an error response object, this method should be called on the handlers actions
+   *
+   * @param statusCode the status code.
+   *        e.g. 400
+   * @param error a descriptive message of the result
+   *        e.g. 'missing xyz parameter'
+   * @returns the response object, ready to be returned from the action main's function.
+   */
+  error(statusCode, error) {
+    if (this.logger && typeof this.logger.info === "function") {
+      this.logger.info(`${statusCode}: ${error}`);
+    }
+    return {
+      error: {
+        statusCode,
+        body: {
+          error
+        }
+      }
+    };
+  }
+};
+var response_default = Response2;
 export {
+  action_validator_default as ActionValidator,
   connection_default as Connection,
-  database_default as Database
+  database_default as Database,
+  HttpStatus,
+  parameters_default as Parameters,
+  response_default as Response
 };
 //# sourceMappingURL=index.mjs.map
