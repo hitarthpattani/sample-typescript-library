@@ -1,34 +1,8 @@
 /**
  * Copyright © Adobe, Inc. All rights reserved.
  */
-interface Request {
-    type: string;
-    stmt: {
-        sql: string;
-        named_args: any[];
-    };
-    identifier: string;
-}
 interface Connection$1 {
-    url: string;
-    token: string;
-    requests: Request[];
     addRequest(query: string, args: any[], identifier: string): void;
-    execute(): Promise<{
-        [key: string]: any;
-    }>;
-}
-
-/**
- * Copyright © Adobe, Inc. All rights reserved.
- */
-
-declare class Connection implements Connection$1 {
-    url: string;
-    token: string;
-    requests: Request[];
-    constructor(url?: string, token?: string);
-    addRequest(query?: string, args?: any[], identifier?: string): void;
     execute(): Promise<{
         [key: string]: any;
     }>;
@@ -185,6 +159,39 @@ declare class ActionValidator {
 /**
  * Copyright © Adobe, Inc. All rights reserved.
  */
+
+interface Request {
+    type: string;
+    stmt: {
+        sql: string;
+        named_args: any[];
+    };
+    identifier: string;
+}
+interface Connection extends Connection$1 {
+    url: string;
+    token: string;
+    requests: Request[];
+}
+
+/**
+ * Copyright © Adobe, Inc. All rights reserved.
+ */
+
+declare class Turso implements Connection {
+    url: string;
+    token: string;
+    requests: Request[];
+    constructor(url?: string, token?: string);
+    addRequest(query?: string, args?: any[], identifier?: string): void;
+    execute(): Promise<{
+        [key: string]: any;
+    }>;
+}
+
+/**
+ * Copyright © Adobe, Inc. All rights reserved.
+ */
 declare enum HttpStatus {
     OK = 200,
     BAD_REQUEST = 400,
@@ -193,4 +200,4 @@ declare enum HttpStatus {
     INTERNAL_ERROR = 500
 }
 
-export { Action, ActionResponse, ActionValidator, Connection, Database, HttpStatus };
+export { Action, ActionResponse, ActionValidator, Database, HttpStatus, Turso };
