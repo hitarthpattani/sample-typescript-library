@@ -184,6 +184,24 @@ declare class Response {
 /**
  * Copyright © Adobe, Inc. All rights reserved.
  */
+declare class Action {
+    /**
+     * @param name
+     * @param requiredParams
+     * @param requiredHeaders
+     * @param action
+     * @returns {(function(*): Promise<any>)|*}
+     */
+    static init(name?: string, requiredParams?: string[], requiredHeaders?: string[], action?: (params: {
+        [key: string]: any;
+    }) => Promise<any>): (params: {
+        [key: string]: any;
+    }) => Promise<any>;
+}
+
+/**
+ * Copyright © Adobe, Inc. All rights reserved.
+ */
 declare enum HttpStatus {
     OK = 200,
     BAD_REQUEST = 400,
@@ -192,4 +210,4 @@ declare enum HttpStatus {
     INTERNAL_ERROR = 500
 }
 
-export { ActionValidator, Connection, Database, HttpStatus, Parameters, Response };
+export { Action, ActionValidator, Connection, Database, HttpStatus, Parameters, Response };
