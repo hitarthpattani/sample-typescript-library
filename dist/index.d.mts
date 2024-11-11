@@ -82,4 +82,27 @@ declare class OrderByFormatter {
     }[]): string;
 }
 
-export { AttributeValidator, Connection, OrderByFormatter };
+/**
+ * Copyright © Adobe, Inc. All rights reserved.
+ */
+interface Condition {
+    field: string;
+    value: any;
+    operator: string;
+}
+interface Group {
+    logic: string;
+    conditions: Array<Condition | Group>;
+}
+
+/**
+ * Copyright © Adobe, Inc. All rights reserved.
+ */
+
+declare class WhereConditionFormatter {
+    static buildCondition(condition: Condition): string;
+    static buildGroup(group: Group): string;
+    static format(where: Condition | Group): string;
+}
+
+export { AttributeValidator, Connection, OrderByFormatter, WhereConditionFormatter };

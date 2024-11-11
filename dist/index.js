@@ -1804,7 +1804,8 @@ var src_exports = {};
 __export(src_exports, {
   AttributeValidator: () => attribute_validator_default,
   Connection: () => connection_default,
-  OrderByFormatter: () => order_by_formatter_default
+  OrderByFormatter: () => order_by_formatter_default,
+  WhereConditionFormatter: () => where_condition_formatter_default
 });
 module.exports = __toCommonJS(src_exports);
 
@@ -3178,10 +3179,40 @@ var OrderByFormatter = class {
   }
 };
 var order_by_formatter_default = OrderByFormatter;
+
+// src/library/database/where-condition-formatter/index.ts
+var WhereConditionFormatter = class _WhereConditionFormatter {
+  static buildCondition(condition) {
+    const { field, value, operator } = condition;
+    const formattedValue = typeof value === "string" ? `'${value}'` : value;
+    return `${field} ${operator} ${formattedValue}`;
+  }
+  static buildGroup(group) {
+    const conditions = group.conditions.map((cond) => {
+      if ("conditions" in cond) {
+        return `(${_WhereConditionFormatter.buildGroup(cond)})`;
+      }
+      return _WhereConditionFormatter.buildCondition(cond);
+    });
+    return conditions.join(` ${group.logic} `);
+  }
+  static format(where) {
+    if (!where || Object.keys(where).length === 0) {
+      return "";
+    }
+    if ("conditions" in where) {
+      return `WHERE ${_WhereConditionFormatter.buildGroup(where)}`;
+    } else {
+      return `WHERE ${_WhereConditionFormatter.buildCondition(where)}`;
+    }
+  }
+};
+var where_condition_formatter_default = WhereConditionFormatter;
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
   AttributeValidator,
   Connection,
-  OrderByFormatter
+  OrderByFormatter,
+  WhereConditionFormatter
 });
 //# sourceMappingURL=index.js.map

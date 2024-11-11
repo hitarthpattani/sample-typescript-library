@@ -3169,9 +3169,39 @@ var OrderByFormatter = class {
   }
 };
 var order_by_formatter_default = OrderByFormatter;
+
+// src/library/database/where-condition-formatter/index.ts
+var WhereConditionFormatter = class _WhereConditionFormatter {
+  static buildCondition(condition) {
+    const { field, value, operator } = condition;
+    const formattedValue = typeof value === "string" ? `'${value}'` : value;
+    return `${field} ${operator} ${formattedValue}`;
+  }
+  static buildGroup(group) {
+    const conditions = group.conditions.map((cond) => {
+      if ("conditions" in cond) {
+        return `(${_WhereConditionFormatter.buildGroup(cond)})`;
+      }
+      return _WhereConditionFormatter.buildCondition(cond);
+    });
+    return conditions.join(` ${group.logic} `);
+  }
+  static format(where) {
+    if (!where || Object.keys(where).length === 0) {
+      return "";
+    }
+    if ("conditions" in where) {
+      return `WHERE ${_WhereConditionFormatter.buildGroup(where)}`;
+    } else {
+      return `WHERE ${_WhereConditionFormatter.buildCondition(where)}`;
+    }
+  }
+};
+var where_condition_formatter_default = WhereConditionFormatter;
 export {
   attribute_validator_default as AttributeValidator,
   connection_default as Connection,
-  order_by_formatter_default as OrderByFormatter
+  order_by_formatter_default as OrderByFormatter,
+  where_condition_formatter_default as WhereConditionFormatter
 };
 //# sourceMappingURL=index.mjs.map
