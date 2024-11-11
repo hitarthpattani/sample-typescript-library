@@ -2,7 +2,7 @@
  * Copyright © Adobe, Inc. All rights reserved.
  */
 
-class Parameters {
+class ActionParameters {
     /**
      * Returns a log-ready string of the action input parameters.
      * The `Authorization` header content will be replaced by '<hidden>'.
@@ -21,4 +21,4 @@ class Parameters {
     }
 }
 
-export default Parameters;
+export default ActionParameters;

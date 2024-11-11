@@ -2,9 +2,9 @@
  * Copyright © Adobe, Inc. All rights reserved.
  */
 
-import { HttpStatus } from '../constants';
+import { HttpStatus } from '../../constants';
 
-class Response {
+class ActionResponse {
     logger: any;
 
     constructor(logger: any) {
@@ -50,4 +50,4 @@ class Response {
     }
 }
 
-export default Response;
+export default ActionResponse;

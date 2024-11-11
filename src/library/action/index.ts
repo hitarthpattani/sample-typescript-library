@@ -4,10 +4,11 @@
 
 const { Core } = require('@adobe/aio-sdk')
 
-import Response from '../response';
+import ActionValidator from './validator';
+import ActionResponse from './response';
+import ActionParameters from './parameters';
+
 import { HttpStatus } from '../constants';
-import ActionValidator from '../action-validator';
-import Parameters from '../parameters';
 
 class Action {
     /**
@@ -26,14 +27,14 @@ class Action {
         return async (params: { [key: string]: any }) => {
             // create a Logger
             const logger = Core.Logger('main', { level: params.LOG_LEVEL || 'info' });
-            const response = new Response(logger);
+            const response = new ActionResponse(logger);
 
             try {
                 // 'info' is the default level if not set
                 logger.info(`Calling the ${name} action`);
 
                 // log parameters, only if params.LOG_LEVEL === 'debug'
-                logger.debug(Parameters.stringify(params));
+                logger.debug(ActionParameters.stringify(params));
 
                 // check for missing request input parameters and headers
                 const errorMessage = ActionValidator.checkMissingRequestInputs(

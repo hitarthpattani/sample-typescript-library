@@ -94,6 +94,60 @@ declare class Database {
 /**
  * Copyright © Adobe, Inc. All rights reserved.
  */
+declare class Action {
+    /**
+     * @param name
+     * @param requiredParams
+     * @param requiredHeaders
+     * @param action
+     * @returns {(function(*): Promise<any>)|*}
+     */
+    static init(name?: string, requiredParams?: string[], requiredHeaders?: string[], action?: (params: {
+        [key: string]: any;
+    }) => Promise<any>): (params: {
+        [key: string]: any;
+    }) => Promise<any>;
+}
+
+/**
+ * Copyright © Adobe, Inc. All rights reserved.
+ */
+declare class ActionResponse {
+    logger: any;
+    constructor(logger: any);
+    /**
+     * Returns a success response object, this method should be called on the handlers actions
+     *
+     * @param response a descriptive message of the result
+     *        e.g. 'missing xyz parameter'
+     * @returns the response object, ready to be returned from the action main's function.
+     */
+    success(response: object | string): {
+        statusCode: number;
+        body: object | string;
+    };
+    /**
+     * Returns an error response object, this method should be called on the handlers actions
+     *
+     * @param statusCode the status code.
+     *        e.g. 400
+     * @param error a descriptive message of the result
+     *        e.g. 'missing xyz parameter'
+     * @returns the response object, ready to be returned from the action main's function.
+     */
+    error(statusCode: number, error: string): {
+        error: {
+            statusCode: number;
+            body: {
+                error: string;
+            };
+        };
+    };
+}
+
+/**
+ * Copyright © Adobe, Inc. All rights reserved.
+ */
 declare class ActionValidator {
     /**
      * Returns the list of missing keys given an object and its required keys.
@@ -131,77 +185,6 @@ declare class ActionValidator {
 /**
  * Copyright © Adobe, Inc. All rights reserved.
  */
-declare class Parameters {
-    /**
-     * Returns a log-ready string of the action input parameters.
-     * The `Authorization` header content will be replaced by '<hidden>'.
-     *
-     * @param params action input parameters.
-     *
-     * @returns string
-     */
-    static stringify(params: {
-        [key: string]: any;
-    }): string;
-}
-
-/**
- * Copyright © Adobe, Inc. All rights reserved.
- */
-declare class Response {
-    logger: any;
-    constructor(logger: any);
-    /**
-     * Returns a success response object, this method should be called on the handlers actions
-     *
-     * @param response a descriptive message of the result
-     *        e.g. 'missing xyz parameter'
-     * @returns the response object, ready to be returned from the action main's function.
-     */
-    success(response: object | string): {
-        statusCode: number;
-        body: object | string;
-    };
-    /**
-     * Returns an error response object, this method should be called on the handlers actions
-     *
-     * @param statusCode the status code.
-     *        e.g. 400
-     * @param error a descriptive message of the result
-     *        e.g. 'missing xyz parameter'
-     * @returns the response object, ready to be returned from the action main's function.
-     */
-    error(statusCode: number, error: string): {
-        error: {
-            statusCode: number;
-            body: {
-                error: string;
-            };
-        };
-    };
-}
-
-/**
- * Copyright © Adobe, Inc. All rights reserved.
- */
-declare class Action {
-    /**
-     * @param name
-     * @param requiredParams
-     * @param requiredHeaders
-     * @param action
-     * @returns {(function(*): Promise<any>)|*}
-     */
-    static init(name?: string, requiredParams?: string[], requiredHeaders?: string[], action?: (params: {
-        [key: string]: any;
-    }) => Promise<any>): (params: {
-        [key: string]: any;
-    }) => Promise<any>;
-}
-
-/**
- * Copyright © Adobe, Inc. All rights reserved.
- */
 declare enum HttpStatus {
     OK = 200,
     BAD_REQUEST = 400,
@@ -210,4 +193,4 @@ declare enum HttpStatus {
     INTERNAL_ERROR = 500
 }
 
-export { Action, ActionValidator, Connection, Database, HttpStatus, Parameters, Response };
+export { Action, ActionResponse, ActionValidator, Connection, Database, HttpStatus };
