@@ -3086,7 +3086,80 @@ var Connection = class {
   }
 };
 var connection_default = Connection;
+
+// src/library/database/attribute-validator/index.ts
+var _AttributeValidator = class _AttributeValidator {
+  static validateData(model, data) {
+    const modelAttributes = Object.keys(model.attributes).map((key) => model.attributes[key].name);
+    const attributes = Object.keys(data);
+    attributes.forEach((attr) => {
+      if (!modelAttributes.includes(attr)) {
+        throw new Error(`Attribute "${attr}" is not defined in model "${model.name}"`);
+      }
+    });
+  }
+  static validateWhere(model, where) {
+    const modelAttributes = Object.keys(model.attributes).map((key) => model.attributes[key].name);
+    const validateCondition = (condition) => {
+      if (!modelAttributes.includes(condition.field)) {
+        throw new Error(`Attribute "${condition.field}" is not defined in model "${model.name}"`);
+      }
+      if (!_AttributeValidator.validOperators.includes(condition.operator)) {
+        throw new Error(`Operator "${condition.operator}" is not valid in SQL`);
+      }
+    };
+    const validateGroup = (group) => {
+      if (!_AttributeValidator.validLogics.includes(group.logic)) {
+        throw new Error(`Logic "${group.logic}" is not valid. It should be either "AND" or "OR".`);
+      }
+      group.conditions.forEach((cond) => {
+        if (cond.conditions) {
+          validateGroup(cond);
+        } else {
+          validateCondition(cond);
+        }
+      });
+    };
+    if (where.conditions) {
+      validateGroup(where);
+    } else {
+      validateCondition(where);
+    }
+  }
+  static validateOrderBy(model, orderBy) {
+    const modelAttributes = Object.keys(model.attributes).map((key) => model.attributes[key].name);
+    orderBy.forEach((order) => {
+      if (!modelAttributes.includes(order.field)) {
+        throw new Error(`Attribute "${order.field}" is not defined in model "${model.name}"`);
+      }
+      if (!_AttributeValidator.validDirections.includes(order.direction)) {
+        throw new Error(`Direction "${order.direction}" is not valid. It should be either "ASC" or "DESC".`);
+      }
+    });
+  }
+};
+_AttributeValidator.validOperators = [
+  "=",
+  "!=",
+  "<>",
+  ">",
+  ">=",
+  "<",
+  "<=",
+  "LIKE",
+  "NOT LIKE",
+  "IN",
+  "NOT IN",
+  "BETWEEN",
+  "IS",
+  "IS NOT"
+];
+_AttributeValidator.validLogics = ["AND", "OR"];
+_AttributeValidator.validDirections = ["ASC", "DESC"];
+var AttributeValidator = _AttributeValidator;
+var attribute_validator_default = AttributeValidator;
 export {
+  attribute_validator_default as AttributeValidator,
   connection_default as Connection
 };
 //# sourceMappingURL=index.mjs.map

@@ -34,4 +34,42 @@ declare class Connection implements Connection$1 {
     }>;
 }
 
-export { Connection };
+/**
+ * Copyright © Adobe, Inc. All rights reserved.
+ */
+declare class AttributeValidator {
+    static validOperators: string[];
+    static validLogics: string[];
+    static validDirections: string[];
+    static validateData(model: {
+        attributes: {
+            [key: string]: {
+                name: string;
+            };
+        };
+        name: string;
+    }, data: {
+        [key: string]: any;
+    }): void;
+    static validateWhere(model: {
+        attributes: {
+            [key: string]: {
+                name: string;
+            };
+        };
+        name: string;
+    }, where: any): void;
+    static validateOrderBy(model: {
+        attributes: {
+            [key: string]: {
+                name: string;
+            };
+        };
+        name: string;
+    }, orderBy: {
+        field: string;
+        direction: string;
+    }[]): void;
+}
+
+export { AttributeValidator, Connection };
