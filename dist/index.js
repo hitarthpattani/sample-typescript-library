@@ -3036,11 +3036,11 @@ var Connection = class {
     this.token = token;
     this.requests = [];
   }
-  addRequest({ query = "", args = [], identifier = "" }) {
+  addRequest(query = "", args = [], identifier = "") {
     this.requests.push({
       type: "execute",
-      stmt: { sql: query || "", named_args: args || [] },
-      identifier: identifier || ""
+      stmt: { sql: query, named_args: args },
+      identifier
     });
   }
   async execute() {
@@ -3048,7 +3048,9 @@ var Connection = class {
       throw new Error("No requests to execute");
     }
     this.requests.push({
-      type: "close"
+      type: "close",
+      stmt: { sql: "", named_args: [] },
+      identifier: ""
     });
     console.log(JSON.stringify(this.requests));
     try {
@@ -3070,13 +3072,13 @@ var Connection = class {
         if (req.type === "execute") {
           const res = result.results[index];
           if (res.type === "error") {
-            responses[req.identifier || ""] = {
-              query: req.stmt?.sql || "",
+            responses[req.identifier] = {
+              query: req.stmt.sql,
               error: res.error
             };
           } else if (res.response && res.response.type === "execute") {
-            responses[req.identifier || ""] = {
-              query: req.stmt?.sql || "",
+            responses[req.identifier] = {
+              query: req.stmt.sql,
               result: res.response.result
             };
           }

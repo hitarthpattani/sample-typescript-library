@@ -3,7 +3,7 @@
  */
 
 import fetch from 'node-fetch';
-import { Connection as IConnection, RequestParams, Request } from './types';
+import { Connection as IConnection, Request } from './types';
 
 class Connection implements IConnection {
     url: string;
@@ -16,11 +16,11 @@ class Connection implements IConnection {
         this.requests = [];
     }
 
-    addRequest({ query = '', args = [], identifier = '' }: RequestParams) {
+    addRequest(query: string = '', args: any[] = [], identifier: string = '') {
         this.requests.push({
             type: "execute",
-            stmt: { sql: query || '', named_args: args || [] },
-            identifier: identifier || ''
+            stmt: { sql: query, named_args: args },
+            identifier: identifier
         });
     }
 
@@ -29,9 +29,11 @@ class Connection implements IConnection {
             throw new Error("No requests to execute");
         }
 
-        // Add a close request without stmt and identifier
+        // Add a close request with a default structure
         this.requests.push({
-            type: "close"
+            type: "close",
+            stmt: { sql: '', named_args: [] },
+            identifier: ''
         });
 
         console.log(JSON.stringify(this.requests));
@@ -61,13 +63,13 @@ class Connection implements IConnection {
                     const res = result.results[index];
 
                     if (res.type === "error") {
-                        responses[req.identifier || ''] = {
-                            query: req.stmt?.sql || '',
+                        responses[req.identifier] = {
+                            query: req.stmt.sql,
                             error: res.error,
                         };
                     } else if (res.response && res.response.type === "execute") {
-                        responses[req.identifier || ''] = {
-                            query: req.stmt?.sql || '',
+                        responses[req.identifier] = {
+                            query: req.stmt.sql,
                             result: res.response.result,
                         };
                     }

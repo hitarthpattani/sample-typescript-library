@@ -1,24 +1,19 @@
 /**
  * Copyright © Adobe, Inc. All rights reserved.
  */
-interface RequestParams {
-    query?: string;
-    args?: any[];
-    identifier?: string;
-}
 interface Request {
     type: string;
-    stmt?: {
+    stmt: {
         sql: string;
         named_args: any[];
     };
-    identifier?: string;
+    identifier: string;
 }
 interface Connection$1 {
     url: string;
     token: string;
     requests: Request[];
-    addRequest(params: RequestParams): void;
+    addRequest(query: string, args: any[], identifier: string): void;
     execute(): Promise<{
         [key: string]: any;
     }>;
@@ -33,7 +28,7 @@ declare class Connection implements Connection$1 {
     token: string;
     requests: Request[];
     constructor(url?: string, token?: string);
-    addRequest({ query, args, identifier }: RequestParams): void;
+    addRequest(query?: string, args?: any[], identifier?: string): void;
     execute(): Promise<{
         [key: string]: any;
     }>;
