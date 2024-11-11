@@ -3,4 +3,4 @@
  */
 
 export { default as Connection } from './connection'
-export * from './database'
+export { default as Database } from './database'

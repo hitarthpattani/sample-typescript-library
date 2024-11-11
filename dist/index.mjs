@@ -3087,6 +3087,46 @@ var Connection = class {
 };
 var connection_default = Connection;
 
+// src/library/database/where-condition-formatter/index.ts
+var WhereConditionFormatter = class _WhereConditionFormatter {
+  static buildCondition(condition) {
+    const { field, value, operator } = condition;
+    const formattedValue = typeof value === "string" ? `'${value}'` : value;
+    return `${field} ${operator} ${formattedValue}`;
+  }
+  static buildGroup(group) {
+    const conditions = group.conditions.map((cond) => {
+      if ("conditions" in cond) {
+        return `(${_WhereConditionFormatter.buildGroup(cond)})`;
+      }
+      return _WhereConditionFormatter.buildCondition(cond);
+    });
+    return conditions.join(` ${group.logic} `);
+  }
+  static format(where) {
+    if (!where || Object.keys(where).length === 0) {
+      return "";
+    }
+    if ("conditions" in where) {
+      return `WHERE ${_WhereConditionFormatter.buildGroup(where)}`;
+    } else {
+      return `WHERE ${_WhereConditionFormatter.buildCondition(where)}`;
+    }
+  }
+};
+var where_condition_formatter_default = WhereConditionFormatter;
+
+// src/library/database/order-by-formatter/index.ts
+var OrderByFormatter = class {
+  static format(orderBy) {
+    if (!orderBy || orderBy.length === 0) {
+      return "";
+    }
+    return `ORDER BY ${orderBy.map((order) => `${order.field} ${order.direction}`).join(", ")}`;
+  }
+};
+var order_by_formatter_default = OrderByFormatter;
+
 // src/library/database/attribute-validator/index.ts
 var _AttributeValidator = class _AttributeValidator {
   static validateData(model, data) {
@@ -3159,49 +3199,91 @@ _AttributeValidator.validDirections = ["ASC", "DESC"];
 var AttributeValidator = _AttributeValidator;
 var attribute_validator_default = AttributeValidator;
 
-// src/library/database/order-by-formatter/index.ts
-var OrderByFormatter = class {
-  static format(orderBy) {
-    if (!orderBy || orderBy.length === 0) {
-      return "";
-    }
-    return `ORDER BY ${orderBy.map((order) => `${order.field} ${order.direction}`).join(", ")}`;
+// src/library/database/index.ts
+var Database = class {
+  constructor(connection) {
+    this.connection = connection;
   }
-};
-var order_by_formatter_default = OrderByFormatter;
-
-// src/library/database/where-condition-formatter/index.ts
-var WhereConditionFormatter = class _WhereConditionFormatter {
-  static buildCondition(condition) {
-    const { field, value, operator } = condition;
-    const formattedValue = typeof value === "string" ? `'${value}'` : value;
-    return `${field} ${operator} ${formattedValue}`;
+  define(name, attributes = {}) {
+    const model = {
+      name,
+      attributes,
+      createTable: (identifier = "") => this.createTable(model, identifier),
+      insert: (data = {}, identifier = "") => this.insert(model, data, identifier),
+      update: (data = {}, where = {}, identifier = "") => this.update(model, data, where, identifier),
+      select: (attributes2 = [], where = {}, orderBy = [], identifier = "") => this.select(model, attributes2, where, orderBy, identifier),
+      delete: (where = {}, identifier = "") => this.delete(model, where, identifier)
+    };
+    this[name.toLowerCase()] = model;
   }
-  static buildGroup(group) {
-    const conditions = group.conditions.map((cond) => {
-      if ("conditions" in cond) {
-        return `(${_WhereConditionFormatter.buildGroup(cond)})`;
+  createTable(model, identifier = "") {
+    const columns = Object.entries(model.attributes).map(([_, attr]) => {
+      let columnDef = `${attr.name} ${attr.type}`;
+      if (Array.isArray(attr.properties)) {
+        columnDef += " " + attr.properties.join(" ");
       }
-      return _WhereConditionFormatter.buildCondition(cond);
-    });
-    return conditions.join(` ${group.logic} `);
+      return columnDef;
+    }).join(", ");
+    const query = `CREATE TABLE IF NOT EXISTS ${model.name} (${columns})`;
+    this.connection.addRequest(query, [], identifier);
   }
-  static format(where) {
-    if (!where || Object.keys(where).length === 0) {
-      return "";
-    }
-    if ("conditions" in where) {
-      return `WHERE ${_WhereConditionFormatter.buildGroup(where)}`;
-    } else {
-      return `WHERE ${_WhereConditionFormatter.buildCondition(where)}`;
+  select(model, attributes = [], where = {}, orderBy = [], identifier = "") {
+    const modelAttributes = Object.keys(model.attributes).map((key) => model.attributes[key].name);
+    const selectedAttributes = attributes.length > 0 ? attributes : modelAttributes;
+    selectedAttributes.forEach((attr) => {
+      if (!modelAttributes.includes(attr)) {
+        throw new Error(`Attribute "${attr}" is not defined in model "${model.name}"`);
+      }
+    });
+    attribute_validator_default.validateWhere(model, where);
+    attribute_validator_default.validateOrderBy(model, orderBy);
+    const whereClause = where_condition_formatter_default.format(where);
+    const orderByClause = order_by_formatter_default.format(orderBy);
+    const query = `SELECT ${selectedAttributes.join(", ")} FROM ${model.name} ${whereClause} ${orderByClause}`;
+    this.connection.addRequest(query, [], identifier);
+  }
+  insert(model, data = {}, identifier = "") {
+    attribute_validator_default.validateData(model, data);
+    const attributes = Object.keys(data);
+    const values = attributes.map((attr) => {
+      const value = data[attr];
+      return typeof value === "string" ? `'${value}'` : value;
+    }).join(", ");
+    const query = `INSERT INTO ${model.name} (${attributes.join(", ")}) VALUES (${values})`;
+    this.connection.addRequest(query, [], identifier);
+  }
+  update(model, data = {}, where = {}, identifier = "") {
+    attribute_validator_default.validateData(model, data);
+    attribute_validator_default.validateWhere(model, where);
+    const attributes = Object.keys(data);
+    const values = attributes.map((attr) => {
+      const value = data[attr];
+      return `${attr} = ${typeof value === "string" ? `'${value}'` : value}`;
+    }).join(", ");
+    const whereClause = where_condition_formatter_default.format(where);
+    const query = `UPDATE ${model.name} SET ${values} ${whereClause}`;
+    this.connection.addRequest(query, [], identifier);
+  }
+  delete(model, where = {}, identifier = "") {
+    attribute_validator_default.validateWhere(model, where);
+    const whereClause = where_condition_formatter_default.format(where);
+    const query = `DELETE FROM ${model.name} ${whereClause}`;
+    this.connection.addRequest(query, [], identifier);
+  }
+  async execute() {
+    try {
+      const result = await this.connection.execute();
+      console.log("Execution result:", typeof result === "object" ? JSON.stringify(result) : result);
+      return result;
+    } catch (err) {
+      console.error("Execution error:", err);
+      throw err;
     }
   }
 };
-var where_condition_formatter_default = WhereConditionFormatter;
+var database_default = Database;
 export {
-  attribute_validator_default as AttributeValidator,
   connection_default as Connection,
-  order_by_formatter_default as OrderByFormatter,
-  where_condition_formatter_default as WhereConditionFormatter
+  database_default as Database
 };
 //# sourceMappingURL=index.mjs.map
