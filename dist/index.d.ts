@@ -72,4 +72,14 @@ declare class AttributeValidator {
     }[]): void;
 }
 
-export { AttributeValidator, Connection };
+/**
+ * Copyright © Adobe, Inc. All rights reserved.
+ */
+declare class OrderByFormatter {
+    static format(orderBy: {
+        field: string;
+        direction: string;
+    }[]): string;
+}
+
+export { AttributeValidator, Connection, OrderByFormatter };

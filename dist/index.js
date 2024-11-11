@@ -1803,7 +1803,8 @@ var require_public_api = __commonJS({
 var src_exports = {};
 __export(src_exports, {
   AttributeValidator: () => attribute_validator_default,
-  Connection: () => connection_default
+  Connection: () => connection_default,
+  OrderByFormatter: () => order_by_formatter_default
 });
 module.exports = __toCommonJS(src_exports);
 
@@ -3166,9 +3167,21 @@ _AttributeValidator.validLogics = ["AND", "OR"];
 _AttributeValidator.validDirections = ["ASC", "DESC"];
 var AttributeValidator = _AttributeValidator;
 var attribute_validator_default = AttributeValidator;
+
+// src/library/database/order-by-formatter/index.ts
+var OrderByFormatter = class {
+  static format(orderBy) {
+    if (!orderBy || orderBy.length === 0) {
+      return "";
+    }
+    return `ORDER BY ${orderBy.map((order) => `${order.field} ${order.direction}`).join(", ")}`;
+  }
+};
+var order_by_formatter_default = OrderByFormatter;
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
   AttributeValidator,
-  Connection
+  Connection,
+  OrderByFormatter
 });
 //# sourceMappingURL=index.js.map

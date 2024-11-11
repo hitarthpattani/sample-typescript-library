@@ -3158,8 +3158,20 @@ _AttributeValidator.validLogics = ["AND", "OR"];
 _AttributeValidator.validDirections = ["ASC", "DESC"];
 var AttributeValidator = _AttributeValidator;
 var attribute_validator_default = AttributeValidator;
+
+// src/library/database/order-by-formatter/index.ts
+var OrderByFormatter = class {
+  static format(orderBy) {
+    if (!orderBy || orderBy.length === 0) {
+      return "";
+    }
+    return `ORDER BY ${orderBy.map((order) => `${order.field} ${order.direction}`).join(", ")}`;
+  }
+};
+var order_by_formatter_default = OrderByFormatter;
 export {
   attribute_validator_default as AttributeValidator,
-  connection_default as Connection
+  connection_default as Connection,
+  order_by_formatter_default as OrderByFormatter
 };
 //# sourceMappingURL=index.mjs.map

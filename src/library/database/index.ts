@@ -3,3 +3,4 @@
  */
 
 export { default as AttributeValidator } from './attribute-validator'
+export { default as OrderByFormatter } from './order-by-formatter'
